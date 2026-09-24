@@ -345,6 +345,7 @@ const roleChoices: { role: Role; title: string; description: string }[] = [
 ];
 
 function Login({ onLogin }: { onLogin: (session: StaffSession) => void }) {
+
   const [mode, setMode] = useState<"signin" | "roles" | "register">("signin");
   const [login, setLogin] = useState({ email: "", password: "" });
   const [form, setForm] = useState({
@@ -359,7 +360,32 @@ function Login({ onLogin }: { onLogin: (session: StaffSession) => void }) {
   const [showPassword, setShowPassword] = useState(false),
     [busy, setBusy] = useState(false),
     [error, setError] = useState("");
+
+   // Quick Bypass Handler for Testing
+  const handleDevLogin = (selectedRole: Role) => {
+    onLogin({
+      name: "Dev Test User",
+      mobile: "9999999999",
+      email: "admin@exampur.com",
+      role: selectedRole,
+      photoUrl: "",
+      status: "approved",
+    });
+  };
+
   async function signIn() {
+
+async function signIn() {
+    onLogin({
+      name: "Dev Super Admin",
+      mobile: "9999999999",
+      email: login.email || "admin@exampur.com",
+      role: "Super Admin",
+      photoUrl: "",
+      status: "approved",
+    });
+  }
+
     if (!login.email.includes("@") || login.password.length < 6)
       return setError("सही email और password enter करें।");
     setBusy(true);
@@ -444,6 +470,9 @@ function Login({ onLogin }: { onLogin: (session: StaffSession) => void }) {
   }
   const formContent =
     mode === "signin" ? (
+
+      
+
       <div className="login-form-card signin-card">
         <div className="mobile-brand">
           <Brand compact />

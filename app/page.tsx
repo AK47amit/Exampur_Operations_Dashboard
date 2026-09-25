@@ -1179,7 +1179,13 @@ function Overview({
   activities: ActivityItem[];
   session:any;  // <-- Yahan type add kiya
 }) {
+
+const email = String(session?.email || "").toLowerCase();
+  const roleStr = String(session?.role || session || "").toLowerCase();
+  const isBatchCheckerOnly = email === "batch@exampur.com" || (roleStr.includes("batch") && !roleStr.includes("admin") && !roleStr.includes("super"));
+
   const batchData = BATCHES.map((batch) => ({
+    
     name: batch,
     value: dashboard.batchCounts?.[batch] || 0,
   }));
@@ -1228,7 +1234,11 @@ function Overview({
     },
   ];
   return (
-    <div className="tab-stack">
+
+  
+
+
+<div className="tab-stack">
       <section className="hero-banner">
         <div>
           <span className="eyebrow">
@@ -1268,260 +1278,263 @@ function Overview({
           </div>
         </div>
       </section>
-      <section className="stats-grid">
-        <StatCard
-          label="Total Students"
-          value={dashboard.approvedStudents.toLocaleString("en-IN")}
-          note={(dashboard.todayAdmissions || 0) + " admitted today"}
-          icon={Users}
-          tone="blue"
-        />
-        <StatCard
-          label="Present Today"
-          value={dashboard.presentStudents.toLocaleString("en-IN")}
-          note={`${attendanceRate}% of active students`}
-          icon={UserCheck}
-          tone="green"
-        />
-        <StatCard
-          label="Today Collection"
-          value={money(dashboard.todayCollection)}
-          note="From recorded fee entries"
-          icon={CircleIndianRupee}
-          tone="purple"
-        />
-        <StatCard
-          label="Pending Fee"
-          value={money(dashboard.pendingFee)}
-          note="Current student dues"
-          icon={WalletCards}
-          tone="orange"
-        />
-        <StatCard
-          label="Counsellors"
-          value={String(dashboard.totalCounselors || 0)}
-          note="Approved counsellor accounts"
-          icon={Users}
-          tone="blue"
-        />
-        <StatCard
-          label="Admission Approvals"
-          value={String(pendingAdmissions)}
-          note="Student registrations pending"
-          icon={UserCheck}
-          tone="orange"
-        />
-      </section>
-      <section className="panel fee-due-board">
-        <div className="panel-head">
-          <div>
-            <span>FEE FOLLOW-UP</span>
-            <h3>Today, overdue & upcoming dues</h3>
-          </div>
-          <button onClick={() => setActive("fees")}>Open fees</button>
-        </div>
-        <div className="fee-due-groups">
-          {dueGroups.map((group) => (
-            <article
-              key={group.label}
-              className={`fee-due-group ${group.tone}`}
-            >
-              <header>
-                <span>{group.label}</span>
-                <b>{group.rows.length}</b>
-              </header>
+
+      {!isBatchCheckerOnly && (
+        <>
+          <section className="stats-grid">
+            <StatCard
+              label="Total Students"
+              value={dashboard.approvedStudents.toLocaleString("en-IN")}
+              note={(dashboard.todayAdmissions || 0) + " admitted today"}
+              icon={Users}
+              tone="blue"
+            />
+            <StatCard
+              label="Present Today"
+              value={dashboard.presentStudents.toLocaleString("en-IN")}
+              note={`${attendanceRate}% of active students`}
+              icon={UserCheck}
+              tone="green"
+            />
+            <StatCard
+              label="Today Collection"
+              value={money(dashboard.todayCollection)}
+              note="From recorded fee entries"
+              icon={CircleIndianRupee}
+              tone="purple"
+            />
+            <StatCard
+              label="Pending Fee"
+              value={money(dashboard.pendingFee)}
+              note="Current student dues"
+              icon={WalletCards}
+              tone="orange"
+            />
+            <StatCard
+              label="Counsellors"
+              value={String(dashboard.totalCounselors || 0)}
+              note="Approved counsellor accounts"
+              icon={Users}
+              tone="blue"
+            />
+            <StatCard
+              label="Admission Approvals"
+              value={String(pendingAdmissions)}
+              note="Student registrations pending"
+              icon={UserCheck}
+              tone="orange"
+            />
+          </section>
+          <section className="panel fee-due-board">
+            <div className="panel-head">
               <div>
-                {group.rows.slice(0, 5).map((student) => (
+                <span>FEE FOLLOW-UP</span>
+                <h3>Today, overdue & upcoming dues</h3>
+              </div>
+              <button onClick={() => setActive("fees")}>Open fees</button>
+            </div>
+            <div className="fee-due-groups">
+              {dueGroups.map((group) => (
+                <article
+                  key={group.label}
+                  className={`fee-due-group ${group.tone}`}
+                >
+                  <header>
+                    <span>{group.label}</span>
+                    <b>{group.rows.length}</b>
+                  </header>
+                  <div>
+                    {group.rows.slice(0, 5).map((student) => (
+                      <button
+                        key={student.studentId}
+                        onClick={() => selectStudent(student)}
+                      >
+                        <span>
+                          <b>{student.studentName}</b>
+                          <small>
+                            {student.studentId} ·{" "}
+                            {String(student.nextDueDate).slice(0, 10)}
+                          </small>
+                        </span>
+                        <strong>{money(student.pendingFee)}</strong>
+                      </button>
+                    ))}
+                    {group.rows.length === 0 && (
+                      <small className="no-dues">No student</small>
+                    )}
+                  </div>
+                </article>
+              ))}
+            </div>
+          </section>
+          <section className="analytics-grid">
+            <article className="panel wide">
+              <div className="panel-head">
+                <div>
+                  <span>WEEKLY PERFORMANCE</span>
+                  <h3>Collection trend</h3>
+                </div>
+                <span className="chart-period">Last 7 days</span>
+              </div>
+              <div className="chart-wrap">
+                <ResponsiveContainer width="100%" height="100%">
+                  <AreaChart data={chartData}>
+                    <defs>
+                      <linearGradient
+                        id="collectionFill"
+                        x1="0"
+                        y1="0"
+                        x2="0"
+                        y2="1"
+                      >
+                        <stop offset="0%" stopColor="#5b46e8" stopOpacity={0.32} />
+                        <stop
+                          offset="100%"
+                          stopColor="#5b46e8"
+                          stopOpacity={0.01}
+                        />
+                      </linearGradient>
+                    </defs>
+                    <CartesianGrid stroke="#edf0f5" vertical={false} />
+                    <XAxis
+                      dataKey="day"
+                      axisLine={false}
+                      tickLine={false}
+                      tick={{ fill: "#8b93a7", fontSize: 12 }}
+                    />
+                    <YAxis
+                      axisLine={false}
+                      tickLine={false}
+                      tick={{ fill: "#8b93a7", fontSize: 11 }}
+                      tickFormatter={(v) => `${v / 1000}k`}
+                    />
+                    <Tooltip formatter={(v) => money(Number(v))} />
+                    <Area
+                      type="monotone"
+                      dataKey="collection"
+                      stroke="#5b46e8"
+                      strokeWidth={3}
+                      fill="url(#collectionFill)"
+                    />
+                  </AreaChart>
+                </ResponsiveContainer>
+              </div>
+            </article>
+            <article className="panel">
+              <div className="panel-head">
+                <div>
+                  <span>BATCH DISTRIBUTION</span>
+                  <h3>Active students</h3>
+                </div>
+              </div>
+              <div className="donut-area">
+                <div className="donut-chart">
+                  <ResponsiveContainer width="100%" height="100%">
+                    <PieChart>
+                      <Pie
+                        data={batchData}
+                        innerRadius={62}
+                        outerRadius={80}
+                        paddingAngle={4}
+                        dataKey="value"
+                      >
+                        {batchData.map((_, i) => (
+                          <Cell key={i} fill={colors[i]} />
+                        ))}
+                      </Pie>
+                    </PieChart>
+                  </ResponsiveContainer>
+                  <div>
+                    <b>{total}</b>
+                    <span>Students</span>
+                  </div>
+                </div>
+                <div className="legend">
+                  {batchData.map((item, i) => (
+                    <span key={item.name}>
+                      <i style={{ background: colors[i] }} />
+                      <b>{item.name}</b>
+                      <small>{item.value}</small>
+                    </span>
+                  ))}
+                </div>
+              </div>
+            </article>
+          </section>
+          <section className="lower-grid">
+            <article className="panel">
+              <div className="panel-head">
+                <div>
+                  <span>RECENT STUDENTS</span>
+                  <h3>Latest admissions</h3>
+                </div>
+                <button onClick={() => setActive("students")}>View all</button>
+              </div>
+              <div className="recent-list">
+                {students.slice(0, 4).map((student) => (
                   <button
                     key={student.studentId}
                     onClick={() => selectStudent(student)}
                   >
+                    <span className="student-avatar">
+                      {initials(student.studentName)}
+                    </span>
                     <span>
                       <b>{student.studentName}</b>
-                      <small>
-                        {student.studentId} ·{" "}
-                        {String(student.nextDueDate).slice(0, 10)}
-                      </small>
+                      <small>{student.studentId}</small>
                     </span>
-                    <strong>{money(student.pendingFee)}</strong>
+                    <em>{student.batch}</em>
                   </button>
                 ))}
-                {group.rows.length === 0 && (
-                  <small className="no-dues">No student</small>
-                )}
               </div>
             </article>
-          ))}
-        </div>
-      </section>
-      <section className="analytics-grid">
-        <article className="panel wide">
-          <div className="panel-head">
-            <div>
-              <span>WEEKLY PERFORMANCE</span>
-              <h3>Collection trend</h3>
-            </div>
-            <span className="chart-period">Last 7 days</span>
-          </div>
-          <div className="chart-wrap">
-            <ResponsiveContainer width="100%" height="100%">
-              <AreaChart data={chartData}>
-                <defs>
-                  <linearGradient
-                    id="collectionFill"
-                    x1="0"
-                    y1="0"
-                    x2="0"
-                    y2="1"
-                  >
-                    <stop offset="0%" stopColor="#5b46e8" stopOpacity={0.32} />
-                    <stop
-                      offset="100%"
-                      stopColor="#5b46e8"
-                      stopOpacity={0.01}
-                    />
-                  </linearGradient>
-                </defs>
-                <CartesianGrid stroke="#edf0f5" vertical={false} />
-                <XAxis
-                  dataKey="day"
-                  axisLine={false}
-                  tickLine={false}
-                  tick={{ fill: "#8b93a7", fontSize: 12 }}
-                />
-                <YAxis
-                  axisLine={false}
-                  tickLine={false}
-                  tick={{ fill: "#8b93a7", fontSize: 11 }}
-                  tickFormatter={(v) => `${v / 1000}k`}
-                />
-                <Tooltip formatter={(v) => money(Number(v))} />
-                <Area
-                  type="monotone"
-                  dataKey="collection"
-                  stroke="#5b46e8"
-                  strokeWidth={3}
-                  fill="url(#collectionFill)"
-                />
-              </AreaChart>
-            </ResponsiveContainer>
-          </div>
-        </article>
-        <article className="panel">
-          <div className="panel-head">
-            <div>
-              <span>BATCH DISTRIBUTION</span>
-              <h3>Active students</h3>
-            </div>
-          </div>
-          <div className="donut-area">
-            <div className="donut-chart">
-              <ResponsiveContainer width="100%" height="100%">
-                <PieChart>
-                  <Pie
-                    data={batchData}
-                    innerRadius={62}
-                    outerRadius={80}
-                    paddingAngle={4}
-                    dataKey="value"
-                  >
-                    {batchData.map((_, i) => (
-                      <Cell key={i} fill={colors[i]} />
-                    ))}
-                  </Pie>
-                </PieChart>
-              </ResponsiveContainer>
-              <div>
-                <b>{total}</b>
-                <span>Students</span>
+            <article className="panel">
+              <div className="panel-head">
+                <div>
+                  <span>LIVE ATTENDANCE</span>
+                  <h3>Recent scans</h3>
+                </div>
+                <button onClick={() => setActive("attendance")}>View log</button>
               </div>
-            </div>
-            <div className="legend">
-              {batchData.map((item, i) => (
-                <span key={item.name}>
-                  <i style={{ background: colors[i] }} />
-                  <b>{item.name}</b>
-                  <small>{item.value}</small>
-                </span>
-              ))}
-            </div>
-          </div>
-        </article>
-      </section>
-      <section className="lower-grid">
-        <article className="panel">
-          <div className="panel-head">
-            <div>
-              <span>RECENT STUDENTS</span>
-              <h3>Latest admissions</h3>
-            </div>
-            <button onClick={() => setActive("students")}>View all</button>
-          </div>
-          <div className="recent-list">
-            {students.slice(0, 4).map((student) => (
-              <button
-                key={student.studentId}
-                onClick={() => selectStudent(student)}
-              >
-                <span className="student-avatar">
-                  {initials(student.studentName)}
-                </span>
-                <span>
-                  <b>{student.studentName}</b>
-                  <small>{student.studentId}</small>
-                </span>
-                <em>{student.batch}</em>
-              </button>
-            ))}
-          </div>
-        </article>
-        <article className="panel">
-          <div className="panel-head">
-            <div>
-              <span>LIVE ATTENDANCE</span>
-              <h3>Recent scans</h3>
-            </div>
-            <button onClick={() => setActive("attendance")}>View log</button>
-          </div>
-          <div className="timeline">
-            {attendance.slice(0, 4).map((entry, index) => (
-              <div key={`${entry.studentId}-${index}`}>
-                <span className="timeline-dot">
-                  <CheckCircle2 size={15} />
-                </span>
-                <p>
-                  <b>{entry.studentName}</b>
-                  <small>
-                    {entry.studentId} · {entry.batch}
-                  </small>
-                </p>
-                <time>{entry.time}</time>
+              <div className="timeline">
+                {attendance.slice(0, 4).map((entry, index) => (
+                  <div key={`${entry.studentId}-${index}`}>
+                    <span className="timeline-dot">
+                      <CheckCircle2 size={15} />
+                    </span>
+                    <p>
+                      <b>{entry.studentName}</b>
+                      <small>
+                        {entry.studentId} · {entry.batch}
+                      </small>
+                    </p>
+                    <time>{entry.time}</time>
+                  </div>
+                ))}
               </div>
-            ))}
-          </div>
-        </article>
-        <article className="panel activity-panel">
-          <div className="panel-head">
-            <div>
-              <span>ADMIN ACTIVITY</span>
-              <h3>Recent actions</h3>
-            </div>
-          </div>
-          <div className="activity-list">
-            {activities.slice(0, 4).map((item) => (
-              <div key={item.id}>
-                <span><CheckCircle2 size={14} /></span>
-                <p><b>{item.text}</b><small>{item.time}</small></p>
+            </article>
+            <article className="panel activity-panel">
+              <div className="panel-head">
+                <div>
+                  <span>ADMIN ACTIVITY</span>
+                  <h3>Recent actions</h3>
+                </div>
               </div>
-            ))}
-            {!activities.length && <small className="no-dues">No recorded action yet</small>}
-          </div>
-        </article>
-      </section>
+              <div className="activity-list">
+                {activities.slice(0, 4).map((item) => (
+                  <div key={item.id}>
+                    <span><CheckCircle2 size={14} /></span>
+                    <p><b>{item.text}</b><small>{item.time}</small></p>
+                  </div>
+                ))}
+                {!activities.length && <small className="no-dues">No recorded action yet</small>}
+              </div>
+            </article>
+          </section>
+        </>
+      )}
     </div>
-  );
-}
-
+  )}
 function StudentsPanel({
   students,
   onSelect,

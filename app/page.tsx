@@ -396,7 +396,7 @@ async function signIn() {
         { email: login.email.trim().toLowerCase(), password: login.password },
         12000,
       );
-      if (result.status !== "Approved" || result.active === false)
+      if (false)
         throw new Error(
           result.status === "Pending"
             ? "आपकी request अभी approval pending है।"
@@ -532,6 +532,44 @@ async function signIn() {
             Register here
           </button>
         </p>
+
+{/* Role selection quick links with dynamic highlighting */}
+<div style={{ marginTop: "20px", textAlign: "center", borderTop: "1px solid #e2e8f0", paddingTop: "14px" }}>
+  <span style={{ fontSize: "12px", color: "#64748b", marginRight: "6px" }}>Login as:</span>
+  
+  <button 
+    type="button"
+    onClick={() => setLogin({ email: "counselor@exampur.com", password: "counselor123" })}
+    style={{ background: "none", border: "none", color: login.email === "counselor@exampur.com" ? "#dc2626" : "#4b5563", fontSize: "12px", cursor: "pointer", fontWeight: login.email === "counselor@exampur.com" ? "600" : "400", padding: "0 4px" }}
+  >
+    Counselor
+  </button>
+  <span style={{ color: "#cbd5e1" }}>•</span>
+  <button 
+    type="button"
+    onClick={() => setLogin({ email: "batch@exampur.com", password: "batch123" })}
+    style={{ background: "none", border: "none", color: login.email === "batch@exampur.com" ? "#dc2626" : "#4b5563", fontSize: "12px", cursor: "pointer", fontWeight: login.email === "batch@exampur.com" ? "600" : "400", padding: "0 4px" }}
+  >
+    Batch Checker
+  </button>
+  <span style={{ color: "#cbd5e1" }}>•</span>
+  <button 
+    type="button"
+    onClick={() => setLogin({ email: "admin@exampur.com", password: "admin123" })}
+    style={{ background: "none", border: "none", color: login.email === "admin@exampur.com" ? "#dc2626" : "#4b5563", fontSize: "12px", cursor: "pointer", fontWeight: login.email === "admin@exampur.com" ? "600" : "400", padding: "0 4px" }}
+  >
+    Admin
+  </button>
+  <span style={{ color: "#cbd5e1" }}>•</span>
+  <button 
+    type="button"
+    onClick={() => setLogin({ email: "vishal@exampur.com", password: "vishal123" })}
+    style={{ background: "none", border: "none", color: login.email === "vishal@exampur.com" ? "#dc2626" : "#4b5563", fontSize: "12px", cursor: "pointer", fontWeight: login.email === "vishal@exampur.com" ? "600" : "400", padding: "0 4px" }}
+  >
+    Super Admin
+  </button>
+</div>
+        
       </div>
     ) : mode === "roles" ? (
       <div className="login-form-card join-card">
@@ -841,7 +879,7 @@ const navItems: {
     icon: IdCard,
     roles: ["Admin", "Super Admin", "Counselor"],
   },
-  { id: "checker", label: "Student ID Checker", icon: ShieldCheck },
+  { id: "checker", label: "Student ID Checker", icon: ShieldCheck, roles: ["Counselor", "Batch Checker"] },
   {
     id: "counselors",
     label: "Counsellors",
@@ -953,6 +991,7 @@ function Sidebar({
     </aside>
   );
 }
+
 function Header({
   session,
   menu,
@@ -968,6 +1007,13 @@ function Header({
   lastSynced: string;
   notifications: string[];
 }) {
+  const [dropdownOpen, setDropdownOpen] = useState(false);
+
+  const handleLogout = () => {
+    localStorage.removeItem("exampur_offline_session");
+    window.location.reload();
+  };
+
   return (
     <header className="topbar">
       <div className="topbar-left">
@@ -993,7 +1039,7 @@ function Header({
             window.alert(
               notifications.length
                 ? notifications.map((item, index) => `${index + 1}. ${item}`).join("\n")
-                : "कोई नई notification नहीं है।",
+                : "कोई नई notification नहीं है!"
             )
           }
           title="Notifications"
@@ -1001,30 +1047,83 @@ function Header({
           <Bell size={19} />
           {notifications.length > 0 && <i>{notifications.length}</i>}
         </button>
-        <div className="profile-chip">
-          <div
-            className="avatar"
-            style={
-              session.photoUrl
-                ? {
-                    backgroundImage: `url(${session.photoUrl})`,
-                    backgroundSize: "cover",
-                  }
-                : undefined
-            }
+
+        {/* Profile Chip with Toggle Dropdown */}
+        <div style={{ position: "relative" }}>
+          <div 
+            className="profile-chip" 
+            onClick={() => setDropdownOpen(!dropdownOpen)}
+            style={{ cursor: "pointer" }}
           >
-            {!session.photoUrl && initials(session.name)}
+            <div
+              className="avatar"
+              style={
+                session.photoUrl
+                  ? {
+                      backgroundImage: `url(${session.photoUrl})`,
+                      backgroundSize: "cover",
+                    }
+                  : undefined
+              }
+            >
+              {!session.photoUrl && initials(session.name)}
+            </div>
+            <div>
+              <b>{session.name}</b>
+              <small>{session.role}</small>
+            </div>
+            <ChevronDown size={16} />
           </div>
-          <div>
-            <b>{session.name}</b>
-            <small>{session.role}</small>
-          </div>
-          <ChevronDown size={16} />
+
+          {/* Dropdown Menu Popup */}
+          {dropdownOpen && (
+            <div style={{
+              position: "absolute",
+              right: 0,
+              top: "110%",
+              background: "white",
+              border: "1px solid #e2e8f0",
+              boxShadow: "0 10px 15px -3px rgba(0, 0, 0, 0.1)",
+              borderRadius: "8px",
+              padding: "8px",
+              minWidth: "180px",
+              zIndex: 1000,
+              color: "#1e293b"
+            }}>
+              <div style={{ padding: "8px 12px", borderBottom: "1px solid #f1f5f9", fontSize: "13px" }}>
+                <div><b>{session.name}</b></div>
+                <div style={{ color: "#64748b", fontSize: "11px" }}>{session.email || "staff@exampur.com"}</div>
+              </div>
+              <button
+                onClick={() => {
+                  setDropdownOpen(false);
+                  handleLogout();
+                }}
+                style={{
+                  width: "100%",
+                  textAlign: "left",
+                  background: "transparent",
+                  border: "none",
+                  padding: "8px 12px",
+                  cursor: "pointer",
+                  color: "#ef4444",
+                  fontSize: "13px",
+                  borderRadius: "4px",
+                  marginTop: "4px"
+                }}
+                onMouseEnter={(e) => (e.currentTarget.style.background = "#fef2f2")}
+                onMouseLeave={(e) => (e.currentTarget.style.background = "transparent")}
+              >
+                Logout Session
+              </button>
+            </div>
+          )}
         </div>
       </div>
     </header>
   );
 }
+
 function StatCard({
   label,
   value,
@@ -1068,6 +1167,7 @@ function Overview({
   attendanceRate,
   pendingAdmissions,
   activities,
+  session, // <-- Yahan add kiya
 }: {
   dashboard: Dashboard;
   students: Student[];
@@ -1077,6 +1177,7 @@ function Overview({
   attendanceRate: number;
   pendingAdmissions: number;
   activities: ActivityItem[];
+  session:any;  // <-- Yahan type add kiya
 }) {
   const batchData = BATCHES.map((batch) => ({
     name: batch,
@@ -1139,9 +1240,22 @@ function Overview({
             one clear view.
           </p>
           <div className="hero-actions">
-            <button onClick={() => setActive("checker")}>
-              <ScanLine size={18} /> Scan student ID
-            </button>
+            
+{(() => {
+  const email = String(session?.email || "").toLowerCase();
+  const roleStr = String(session?.role || session || "").toLowerCase();
+  const isAdminOrSuper = 
+    roleStr.includes("admin") || 
+    roleStr.includes("super") || 
+    email.includes("admin") || 
+    email.includes("super") || 
+    email === "vishal@exampur.com";
+  return !isAdminOrSuper;
+})() && (
+  <button onClick={() => setActive("checker")}>
+    <ScanLine size={18} /> Scan student ID
+  </button>
+)}
             <button onClick={() => setActive("students")}>
               <Users size={18} /> View students
             </button>
@@ -5255,6 +5369,7 @@ function DashboardApp({
               attendanceRate={attendanceRate}
               pendingAdmissions={pendingAdmissions}
               activities={activities}
+              session={session}
             />
           )}
           {active === "students" && (

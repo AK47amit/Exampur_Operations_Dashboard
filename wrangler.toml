@@ -1,0 +1,8 @@
+name = 'exampur-operations-dashboard'
+compatibility_date = '2026-05-22'
+main = 'worker/index.ts'
+
+[[d1_databases]]
+binding = 'DB'
+database_name = 'exampur-db'
+database_id = 'local-db'
